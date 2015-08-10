@@ -1,0 +1,34 @@
+%arg -solver cbc
+%display var x[*
+%display con off
+%display nonZeros
+
+parameters:
+	maxC := 6;
+	P := 1..4;
+	C := 1..maxC;
+	r_black := 10;
+	r_white := 1;
+
+variables:
+	x[P, C] : binary;
+	white[P, C] : binary;
+
+objectives:
+	sum{p in P, c in C : r_black * x[p, c]} + sum{p in P, c in C : white[p, c] * r_white} -> max;
+
+constraints:
+	# only one color per position
+	{
+		p in P :
+			OneColorPerPosition: sum{c in C : x[p, c]} <= 1;
+	}
+	
+	# calculate white pins
+	{
+		p in P,
+		c in C :
+			SetWhite: white[p, c] <= sum{p_ in P : x[p_, c]} - x[p, c];
+	}
+	
+include "constraints.cmpl"
